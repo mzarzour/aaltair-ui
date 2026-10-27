@@ -1,8 +1,8 @@
-# Altair UI
+# Aaltair UI
 
 Security dashboard with Home briefings, application/repository hierarchy, aging, issue types, and owner-managed scope.
 
-This is a source export of the existing Altair Sites application. Apiiro inventory and finding snapshots are intentionally empty. Credentials, local environment files, build output, and original Git history are excluded.
+This is a source export of the existing Aaltair Sites application. Apiiro inventory and finding snapshots are intentionally empty. Credentials, local environment files, build output, and original Git history are excluded.
 
 ## Development
 

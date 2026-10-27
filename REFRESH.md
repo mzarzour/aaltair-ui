@@ -1,4 +1,4 @@
-# Altair refresh
+# Aaltair refresh
 
 The owner saves shared scope in Setup. Read the current live /api/refresh-config before each refresh; never use an old hard-coded app list.
 
