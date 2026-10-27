@@ -1,0 +1,23 @@
+name: Refresh Aaltair data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: aaltair-data-refresh
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Process queued or morning refresh
+        env:
+          APIIRO_API_TOKEN: ${{ secrets.APIIRO_API_TOKEN }}
+          REFRESH_RUNNER_TOKEN: ${{ secrets.REFRESH_RUNNER_TOKEN }}
+        run: python3 scripts/github-refresh.py
