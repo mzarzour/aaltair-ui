@@ -4,7 +4,10 @@ from pathlib import Path
 SITE='https://aaltair.prime-badge-2215.chatgpt.site'
 def request(url,payload=None,token=None):
  headers={'Accept':'application/json'}
- if token:headers['Authorization']='Bearer '+token
+ if url.startswith(SITE+'/'):
+  headers['X-Aaltair-Runner-Key']=token
+  headers['OAI-Sites-Authorization']='Bearer '+os.environ['SITES_SERVICE_TOKEN']
+ elif token:headers['Authorization']='Bearer '+token
  data=None if payload is None else json.dumps(payload).encode()
  if data is not None:headers['Content-Type']='application/json'
  # Never follow a redirect with an API or upload credential.
