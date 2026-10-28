@@ -1,4 +1,7 @@
 """Run only on a GitHub-hosted runner. No snapshots or credentials are committed."""
+from history import history
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import os,json,urllib.request,urllib.parse,tempfile,sys,importlib.util,re,time
 from pathlib import Path
 SITE='https://aaltair.prime-badge-2215.chatgpt.site'
@@ -31,6 +34,8 @@ def main():
    module.main()
    data=json.loads(re.search(r'id="dashboard-data">(.*?)</script>',out.read_text(),re.S)[1])
    catalog=json.loads((module.ROOT/'data/application-catalog.json').read_text())
+   current_catalog=module.paged('/rest-api/v1/applications')
+   data['history']=history(module,claim['config'],current_catalog,datetime.now(ZoneInfo('America/Chicago')))
    result=runner({'action':'complete','job':job,'data':data,'catalog':catalog})
    print('Snapshot published:',result['updatedAt'],'findings:',result['findings'])
  except Exception as error:
