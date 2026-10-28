@@ -1,11 +1,11 @@
-"""Six calendar months of discovery and confirmed resolution activity, in current scope."""
+"""Five calendar years of discovery and confirmed resolution activity, in current scope."""
 from datetime import datetime,timezone,timedelta
 from calendar import monthrange
 from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
 def history(module,config,catalog,now,current):
- month_index=now.year*12+now.month-1-6
+ month_index=now.year*12+now.month-1-60
  year,month=divmod(month_index,12);month+=1
  start=now.replace(year=year,month=month,day=min(now.day,monthrange(year,month)[1]),hour=0,minute=0,second=0,microsecond=0)
  records={}
