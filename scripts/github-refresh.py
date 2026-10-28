@@ -2,6 +2,7 @@
 from history import history
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import traceback
 import os,json,urllib.request,urllib.parse,tempfile,sys,importlib.util,re,time
 from pathlib import Path
 SITE='https://aaltair.prime-badge-2215.chatgpt.site'
@@ -42,5 +43,8 @@ def main():
   try:runner({'action':'complete','job':job,'error':True})
   except Exception:pass
   # Report status/type without response bodies, headers, tokens, or finding details.
-  print('Refresh failed:',type(error).__name__,getattr(error,'code',''));raise SystemExit(1)
+  print('Refresh failed:',type(error).__name__,getattr(error,'code',''))
+  for frame in traceback.extract_tb(error.__traceback__):print('Failure location:',Path(frame.filename).name,frame.lineno,frame.name)
+  if isinstance(error,KeyError) and error.args and error.args[0] in ['id','url','entity','details','riskLevel','findingCategory','riskCategory','applications','name','key']:print('Missing field:',error.args[0])
+  raise SystemExit(1)
 if __name__=='__main__':main()
