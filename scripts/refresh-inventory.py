@@ -47,7 +47,7 @@ def build(config,catalog,risks,now):
    token=config['repositoryFilters'][a['name']].lower();repos=[r for r in repos if token in r['repositoryUrl'].rsplit('/',1)[-1].lower()]
   apps.append({'id':a['key'],'name':a['name'],'repositories':sorted(repos,key=lambda r:r['repositoryUrl'].lower())})
  rs=[r for r in {r['id']:r for r in risks}.values() if r['riskStatus']=='Open' and r['riskLevel'] in LEVELS]
- def vulnerability(r):return r['findingCategory']=='Vulnerability' or r['riskCategory']=='Container security'
+ def vulnerability(r):return r.get('findingCategory')=='Vulnerability' or r.get('riskCategory') in ['Container security','ContainerSecurity']
  def payload(rows):
   rows=list({r['id']:r for r in rows}.values())
   return {mode:[sum(r['riskLevel']==level and (mode=='risks' or vulnerability(r)) for r in rows) for level in LEVELS] for mode in ['risks','vulnerabilities']}
