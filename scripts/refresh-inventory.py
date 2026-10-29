@@ -86,7 +86,7 @@ def build(config,catalog,risks,now):
   for mode in m:assert [sum(v) for v in m[mode]]==counts['total' if idx is None else f'application-{idx}'][mode]
  return {'apps':apps,'counts':counts,'aging':{'asOf':now.date().isoformat(),'applications':matrices,'total':total,'items':list(items.values())}}
 def resolved_snapshot(config,catalog,now):
- start=(now-timedelta(days=max(1,now.weekday()))).replace(hour=0,minute=0,second=0,microsecond=0)
+ start=(now-timedelta(days=now.weekday())).replace(hour=0,minute=0,second=0,microsecond=0)
  records={}
  for name in config['applications']:
   app=next(a for a in catalog if a['name'].casefold()==name.casefold())
