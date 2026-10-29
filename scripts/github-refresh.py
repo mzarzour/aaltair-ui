@@ -1,12 +1,12 @@
 """Run only on a GitHub-hosted runner. No snapshots or credentials are committed."""
-from history import history
-from datetime import datetime
+from history import history,merge_history
+from datetime import datetime,timedelta
 from zoneinfo import ZoneInfo
 import traceback
 import os,json,urllib.request,urllib.parse,tempfile,sys,importlib.util,re,time
 from pathlib import Path
 SITE='https://aaltair.prime-badge-2215.chatgpt.site'
-def request(url,payload=None,token=None):
+def request(url,payload=None,token=None,as_text=False):
  headers={'Accept':'application/json'}
  if url.startswith(SITE+'/'):
   headers['X-Aaltair-Runner-Key']=token
@@ -18,7 +18,7 @@ def request(url,payload=None,token=None):
  class NoRedirect(urllib.request.HTTPRedirectHandler):
   def redirect_request(self,*args,**kwargs):return None
  opener=urllib.request.build_opener(NoRedirect)
- with opener.open(urllib.request.Request(url,data=data,headers=headers),timeout=90) as r:return json.load(r)
+ with opener.open(urllib.request.Request(url,data=data,headers=headers),timeout=90) as r:return r.read().decode() if as_text else json.load(r)
 def runner(payload):return request(SITE+'/api/refresh-runner',payload,os.environ['REFRESH_RUNNER_TOKEN'])
 def main():
  claim=runner({'action':'claim'})
@@ -35,8 +35,13 @@ def main():
    module.main()
    data=json.loads(re.search(r'id="dashboard-data">(.*?)</script>',out.read_text(),re.S)[1])
    catalog=json.loads((module.ROOT/'data/application-catalog.json').read_text())
+   html=request(SITE+'/',token=os.environ['REFRESH_RUNNER_TOKEN'],as_text=True)
+   previous=json.loads(re.search(r'id="dashboard-data">(.*?)</script>',html,re.S)[1])
+   if previous.get('history',{}).get('version')!=2:raise ValueError('Retained history unavailable; refusing automatic full backfill')
+   since=datetime.fromisoformat(previous['history']['asOf']).astimezone(ZoneInfo('America/Chicago'))-timedelta(days=7)
    current_catalog=module.paged('/rest-api/v1/applications')
-   data['history']=history(module,claim['config'],current_catalog,datetime.now(ZoneInfo('America/Chicago')),data)
+   recent=history(module,claim['config'],current_catalog,datetime.now(ZoneInfo('America/Chicago')),data,since=since)
+   data['history']=merge_history(previous,data,recent)
    result=runner({'action':'complete','job':job,'data':data,'catalog':catalog})
    print('Snapshot published:',result['updatedAt'],'findings:',result['findings'])
  except Exception as error:

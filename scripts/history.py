@@ -4,10 +4,11 @@ from calendar import monthrange
 from zoneinfo import ZoneInfo
 from urllib.parse import urlencode
 
-def history(module,config,catalog,now,current):
+def history(module,config,catalog,now,current,since=None):
  month_index=now.year*12+now.month-1-36
  year,month=divmod(month_index,12);month+=1
  start=now.replace(year=year,month=month,day=min(now.day,monthrange(year,month)[1]),hour=0,minute=0,second=0,microsecond=0)
+ if since is not None:start=since
  records={}
  for name in config['applications']:
   app=next(a for a in catalog if a['name'].casefold()==name.casefold())
@@ -42,3 +43,15 @@ def history(module,config,catalog,now,current):
   byid[item['id']]={k:item[k] for k in ['id','issueType','severity','apps','repositoryUrl','branch','vulnerability']} | {'discoveredDate':discovered,'closedDate':None,'fixedDate':None,'currentOpen':True}
  items=list(byid.values())
  return {'version':2,'from':start.date().isoformat(),'asOf':now.isoformat(),'items':items,'basis':'Apiiro retained lifecycle dates, projected onto current application and repository scope. Reopening cycles and deleted records may not be recoverable.'}
+
+
+def merge_history(previous,current,recent):
+ """Keep retained closed records and replace changed/current records by ID."""
+ mapping={i:next((j for j,a in enumerate(current['apps']) if a['id']==old['id']),None) for i,old in enumerate(previous['apps'])}
+ retained={}
+ for row in previous['history']['items']:
+  apps=[mapping[i] for i in row['apps'] if mapping.get(i) is not None]
+  if apps and not row.get('currentOpen'):
+   retained[row['id']]={**row,'apps':apps}
+ retained.update({row['id']:row for row in recent['items']})
+ return {**recent,'from':previous['history']['from'],'items':list(retained.values())}
