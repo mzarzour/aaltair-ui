@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import traceback
 import os,json,urllib.request,urllib.parse,tempfile,sys,importlib.util,re,time
 from pathlib import Path
-SITE='https://aaltair.prime-badge-2215.chatgpt.site'
+SITE='https://aaltair.markzarzour.chatgpt.site'
 def request(url,payload=None,token=None,as_text=False):
  headers={'Accept':'application/json'}
  if url.startswith(SITE+'/'):

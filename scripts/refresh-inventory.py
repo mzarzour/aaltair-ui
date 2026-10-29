@@ -5,7 +5,7 @@ from datetime import datetime,timedelta
 from zoneinfo import ZoneInfo
 from concurrent.futures import ThreadPoolExecutor
 ROOT=Path(__file__).resolve().parents[1]
-CONFIG_URL='https://aaltair.prime-badge-2215.chatgpt.site/api/refresh-config'
+CONFIG_URL='https://aaltair.markzarzour.chatgpt.site/api/refresh-config'
 LEVELS=['Critical','High','Medium','Low']
 def live_config():
  return json.loads(subprocess.run(['curl','--fail','--silent','--show-error','--max-time','30',CONFIG_URL],capture_output=True,text=True,check=True).stdout)
