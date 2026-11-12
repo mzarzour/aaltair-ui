@@ -115,6 +115,7 @@ def main():
   raw=json.loads((args.fixtures/'applications-refresh.json').read_text());catalog=raw['items'];risks=json.loads((args.fixtures/'all-risks.json').read_text())
  else:
   catalog=paged('/rest-api/v1/applications');risks=[]
+  build(config,catalog,[],datetime.now(ZoneInfo('America/Chicago'))) # Validate scope before fetching findings.
   for name in config['applications']:
    matches=[a for a in catalog if a['name'].casefold()==name.casefold()]
    if len(matches)!=1:raise ValueError('Application missing or ambiguous: '+name)
