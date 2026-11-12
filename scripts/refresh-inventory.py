@@ -41,7 +41,9 @@ def build(config,catalog,risks,now):
    if urls is not None:
     assert isinstance(urls,list) and urls,'Empty repository selection for '+a['name']
     missing=set(urls)-{r['repositoryUrl'] for r in repos}
-    if missing:raise ValueError('Selected repositories no longer assigned to '+a['name']+': '+', '.join(sorted(missing)))
+    if missing:
+     if not (set(urls)-missing):raise ValueError('Selected repositories no longer assigned to '+a['name']+': '+', '.join(sorted(missing)))
+     print('Scope warning: skipped stale repository assignments for '+a['name']+': '+', '.join(sorted(missing)))
     repos=[r for r in repos if r['repositoryUrl'] in urls]
   elif config.get('repositoryFilters',{}).get(a['name']):
    token=config['repositoryFilters'][a['name']].lower();repos=[r for r in repos if token in r['repositoryUrl'].rsplit('/',1)[-1].lower()]
