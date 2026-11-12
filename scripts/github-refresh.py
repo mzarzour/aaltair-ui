@@ -49,6 +49,7 @@ def main():
   except Exception:pass
   # Report status/type without response bodies, headers, tokens, or finding details.
   print('Refresh failed:',type(error).__name__,getattr(error,'code',''))
+  if isinstance(error,ValueError) and str(error).startswith('Selected repositories no longer assigned to '):print('Scope validation:',str(error))
   for frame in traceback.extract_tb(error.__traceback__):print('Failure location:',Path(frame.filename).name,frame.lineno,frame.name)
   if isinstance(error,KeyError) and error.args and error.args[0] in ['id','url','entity','details','riskLevel','findingCategory','riskCategory','applications','name','key']:print('Missing field:',error.args[0])
   raise SystemExit(1)
