@@ -2,7 +2,11 @@ name: Refresh Aaltair data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+    # Off-peak polling also handles Refresh Now requests.
+    - cron: '7,22,37,52 * * * *'
+    # Dedicated morning attempts: 7:03/7:33 Central in either DST season.
+    # The server's America/Chicago date guard skips early and completed days.
+    - cron: '3,33 12,13,14 * * *'
 permissions:
   contents: read
 concurrency:
