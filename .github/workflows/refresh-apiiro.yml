@@ -1,6 +1,11 @@
 name: Refresh Aaltair data
 on:
   workflow_dispatch:
+    inputs:
+      queued_only:
+        description: Only process a pending or scheduled refresh
+        type: boolean
+        default: false
   schedule:
     # Off-peak polling also handles Refresh Now requests.
     - cron: '7,22,37,52 * * * *'
@@ -22,6 +27,7 @@ jobs:
           persist-credentials: false
       - name: Process queued or morning refresh
         env:
+          AALTAIR_MANUAL_REFRESH: ${{ github.event_name == 'workflow_dispatch' && !inputs.queued_only }}
           APIIRO_API_TOKEN: ${{ secrets.APIIRO_API_TOKEN }}
           SITES_SERVICE_TOKEN: ${{ secrets.SITES_SERVICE_TOKEN }}
           REFRESH_RUNNER_TOKEN: ${{ secrets.REFRESH_RUNNER_TOKEN }}

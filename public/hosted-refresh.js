@@ -1,5 +1,6 @@
 (async () => {
   const statusUrl = '/api/refresh';
+  const workflowUrl = 'https://github.com/mzarzour/aaltair-ui/actions/workflows/refresh-apiiro.yml';
   const response = await fetch(statusUrl, {cache: 'no-store'});
   if (!response.ok) return;
   let state = await response.json();
@@ -14,12 +15,12 @@
       timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
     }) : '';
     for (const {button, label} of controls) {
-      button.disabled = busy || submitting;
-      button.textContent = state.status === 'running' ? 'Refreshing…' : state.status === 'queued' ? 'Refresh queued' : 'Refresh Now';
+      button.disabled = state.status === 'running' || (busy && state.directDispatch) || submitting;
+      button.textContent = state.status === 'running' ? 'Refreshing…' : !state.directDispatch ? 'Refresh via GitHub' : state.status === 'queued' ? 'Refresh queued' : 'Refresh Now';
       if (state.status === 'queued') {
         label.textContent = 'Requested' + (queuedAt ? ' · ' + queuedAt : '') + '. Waiting for a GitHub runner. ';
         const link = document.createElement('a');
-        link.href = 'https://github.com/mzarzour/aaltair-ui/actions/workflows/refresh-apiiro.yml';
+        link.href = workflowUrl;
         link.textContent = 'Open workflow';
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
@@ -27,7 +28,7 @@
       }
       else if (state.status === 'running') label.textContent = 'Fetching the next Apiiro snapshot.';
       else if (state.status === 'failed') label.textContent = state.error || 'Refresh failed. Previous snapshot retained.';
-      else label.textContent = '';
+      else label.textContent = state.directDispatch ? '' : 'In GitHub, choose Run workflow on main to refresh now.';
     }
     clearTimeout(timer);
     if (!document.hidden) timer = setTimeout(poll, busy ? 15000 : 60000);
@@ -76,7 +77,7 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'theme-toggle';
-    button.onclick = queue;
+    button.onclick = () => state.directDispatch ? queue() : window.open(workflowUrl, '_blank', 'noopener,noreferrer');
     const label = document.createElement('span');
     label.className = 'small';
     label.setAttribute('role', 'status');

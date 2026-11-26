@@ -3,11 +3,11 @@ import {readConfig} from './refresh-config';
 const key='altair/github-refresh-state.json';
 async function read(){const o=await env.BUCKET!.get(key);return {state:o?await o.json<any>():{status:'idle'},etag:o?.etag};}
 async function save(state:any,etag?:string){const o=await env.BUCKET!.put(key,JSON.stringify(state),{onlyIf:etag?{etagMatches:etag}:{etagDoesNotMatch:'*'}});if(!o)throw Error('Refresh state changed. Please retry.');}
-export async function queueStatus(){return (await read()).state;}
+export async function queueStatus(){return {...(await read()).state, directDispatch: Boolean((env as any).GITHUB_ACTIONS_DISPATCH_TOKEN)};}
 export async function requestRefresh() {
  const {state, etag} = await read();
  const active = state.status === 'running' && Date.now() - Date.parse(state.startedAt) < 25 * 60000;
- if (state.status === 'queued' || active) return state;
+ if (state.status === 'queued' || active) return queueStatus();
 
  const next = {...state, status:'queued', requestedAt:new Date().toISOString(), error:null};
  await save(next, etag);
@@ -19,7 +19,7 @@ export async function requestRefresh() {
     method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(8000),
     headers: {Authorization:'Bearer '+token, Accept:'application/vnd.github+json',
      'Content-Type':'application/json', 'User-Agent':'Aaltair-refresh'},
-    body: JSON.stringify({ref:'main'})
+    body: JSON.stringify({ref:'main', inputs:{queued_only:'true'}})
    });
    if (!response.ok) console.warn('Refresh dispatch returned HTTP', response.status);
   } catch {
@@ -29,12 +29,12 @@ export async function requestRefresh() {
  return queueStatus();
 }
 export function runnerAuthorized(request:Request){const expected=(env as any).REFRESH_RUNNER_TOKEN;return !!expected&&request.headers.get('x-aaltair-runner-key')===expected;}
-export async function claimRefresh(){
+export async function claimRefresh(manual = false){
  const {state,etag}=await read();if(state.status==='running'&&Date.now()-Date.parse(state.startedAt)<25*60000)return {job:null};
  const parts=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Chicago',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(p=>[p.type,p.value]));const date=`${parts.year}-${parts.month}-${parts.day}`;
  const due=Number(parts.hour)>=7&&state.completedLocalDate!==date;
- if(state.status!=='queued'&&!due)return {job:null};
- if(state.failedAt&&Date.now()-Date.parse(state.failedAt)<15*60000&&state.status!=='queued')return {job:null};
+ if(!manual&&state.status!=='queued'&&!due)return {job:null};
+ if(!manual&&state.failedAt&&Date.now()-Date.parse(state.failedAt)<15*60000&&state.status!=='queued')return {job:null};
  const {config,etag:configEtag}=await readConfig();const job=crypto.randomUUID();await save({...state,status:'running',job,configEtag,startedAt:new Date().toISOString(),localDate:date,error:null},etag);return {job,config};
 }
 export async function finishRefresh(input:any){

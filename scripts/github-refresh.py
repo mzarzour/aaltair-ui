@@ -20,10 +20,17 @@ def request(url,payload=None,token=None,as_text=False):
  opener=urllib.request.build_opener(NoRedirect)
  with opener.open(urllib.request.Request(url,data=data,headers=headers),timeout=90) as r:return r.read().decode() if as_text else json.load(r)
 def runner(payload):return request(SITE+'/api/refresh-runner',payload,os.environ['REFRESH_RUNNER_TOKEN'])
+def report(message):
+ print(message)
+ if os.environ.get('GITHUB_STEP_SUMMARY'):
+  with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as summary:
+   print(message,file=summary)
 def main():
- claim=runner({'action':'claim'})
+ manual=os.environ.get('AALTAIR_MANUAL_REFRESH')=='true'
+ claim=runner({'action':'claim','manual':manual})
  if not claim.get('job'):
-  print('No refresh due or already running.');return
+  message='Refresh already running.' if manual else 'No refresh due or already running.'
+  report(message);return
  job=claim['job']
  try:
   spec=importlib.util.spec_from_file_location('inventory',Path(__file__).with_name('refresh-inventory.py'));module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
@@ -43,7 +50,7 @@ def main():
    recent=history(module,claim['config'],current_catalog,datetime.now(ZoneInfo('America/Chicago')),data,since=since)
    data['history']=merge_history(previous,data,recent)
    result=runner({'action':'complete','job':job,'data':data,'catalog':catalog})
-   print('Snapshot published:',result['updatedAt'],'findings:',result['findings'])
+   report(f"Snapshot published: {result['updatedAt']} · {result['findings']} open findings.")
  except Exception as error:
   try:runner({'action':'complete','job':job,'error':True})
   except Exception:pass
