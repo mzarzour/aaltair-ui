@@ -1,10 +1,11 @@
 import { env } from 'cloudflare:workers';
 import { isOwner, readConfig, key, json } from '../../../lib/refresh-config';
-import catalog from '../../../data/application-catalog.json';
+import fallbackCatalog from '../../../data/application-catalog.json';
+import {hostedSnapshot} from '../../../lib/hosted-refresh';
 export const dynamic='force-dynamic';
 export async function GET(request:Request) {
  if(!isOwner(request))return json({error:'Sign in with the dashboard owner account to edit Setup.'},request.headers.get('oai-authenticated-user-id')?403:401);
- try {return json({...await readConfig(),catalog});}catch{return json({error:'Settings are unavailable. Please try again.'},503);}
+ try {const catalog=(await hostedSnapshot())?.catalog||fallbackCatalog;return json({...await readConfig(),catalog});}catch{return json({error:'Settings are unavailable. Please try again.'},503);}
 }
 export async function POST(request:Request) {
  if(!isOwner(request))return json({error:'Only the dashboard owner may change refresh settings.'},403);
@@ -18,6 +19,7 @@ export async function POST(request:Request) {
  if(new Set(names.map(v=>v.toLowerCase())).size!==names.length)return json({error:'Remove duplicate application names.'},400);
  const current=await readConfig();if(input.etag!==current.etag)return json({error:'Settings changed elsewhere. Reload Setup before saving.'},409);
  if(!input.repositorySelections || typeof input.repositorySelections!=='object' || Array.isArray(input.repositorySelections))return json({error:'Repository selections are required. Reload Setup.'},400);
+ const catalog=(await hostedSnapshot())?.catalog||fallbackCatalog;
  const selections:Record<string,string[]|null>=Object.create(null);
  for(const name of names){
   if(!Object.hasOwn(input.repositorySelections,name))return json({error:'Missing repository selection for '+name},400);

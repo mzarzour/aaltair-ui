@@ -30,6 +30,7 @@ export function projectDashboard(source: any, config: any) {
    return {...repo,countKey};
   });
  });
- const resolved=source.resolved?{...source.resolved,items:projectDashboard({...source,resolved:undefined,aging:{...source.aging,items:source.resolved.items}},config).aging.items}:undefined;
- return {...source,resolved,apps:entries.map((e:any)=>e.app),counts,aging:{...source.aging,items}};
+ const history=source.history?{...source.history,items:projectDashboard({...source,history:undefined,resolved:undefined,aging:{...source.aging,items:source.history.items}},config).aging.items}:undefined;
+ const resolved=source.resolved?{...source.resolved,items:projectDashboard({...source,history:undefined,resolved:undefined,aging:{...source.aging,items:source.resolved.items}},config).aging.items}:undefined;
+ return {...source,history,resolved,apps:entries.map((e:any)=>e.app),counts,aging:{...source.aging,items}};
 }

@@ -1,5 +1,6 @@
 import dashboard from '../data/dashboard.html?raw';
-import catalog from '../data/application-catalog.json';
+import fallbackCatalog from '../data/application-catalog.json';
+import {hostedSnapshot} from '../lib/hosted-refresh';
 import {readConfig} from '../lib/refresh-config';
 import {projectDashboard} from '../lib/project-dashboard';
 export const dynamic = 'force-dynamic';
@@ -7,7 +8,9 @@ export async function GET() {
  try {
   const {config}=await readConfig();
   const pattern=/(<script type="application\/json" id="dashboard-data">)([\s\S]*?)(<\/script>)/;
-  const source=JSON.parse(dashboard.match(pattern)![2]);
+  const hosted=await hostedSnapshot();
+  const catalog=hosted?.catalog||fallbackCatalog;
+  const source=hosted?.data||JSON.parse(dashboard.match(pattern)![2]);
   const data=projectDashboard(source,config);
   const apps=data.apps.length, repos=new Set(data.apps.flatMap((a:any)=>a.repositories.map((r:any)=>r.repositoryUrl))).size;
   const relations=data.apps.reduce((n:number,a:any)=>n+a.repositories.length,0);
@@ -23,6 +26,7 @@ export async function GET() {
   });
   const notice=pending?'Saved selections are applied. Newly selected applications or repositories without snapshot data will appear after the next refresh.':'Home and Aging reflect your saved application and repository selections.';
   html=html.replace('<main id="home-page">',`<p class="small" role="status" style="margin:12px 24px" id="selection-status">${notice}</p><main id="home-page">`);
+  if(hosted)html=html.replace(/Updated · [^<]*/, 'Updated · '+new Date(hosted.updatedAt).toLocaleString('en-US',{timeZone:'America/Chicago'})+' Central');
   return new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}});
  } catch {
   return new Response('Unable to load the saved application scope. Please reload shortly.',{status:503,headers:{'Cache-Control':'no-store'}});
