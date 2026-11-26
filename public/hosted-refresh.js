@@ -16,7 +16,15 @@
     for (const {button, label} of controls) {
       button.disabled = busy || submitting;
       button.textContent = state.status === 'running' ? 'Refreshing…' : state.status === 'queued' ? 'Refresh queued' : 'Refresh Now';
-      if (state.status === 'queued') label.textContent = 'Next refresh queued' + (queuedAt ? ' · ' + queuedAt : '') + '. Waiting for GitHub.';
+      if (state.status === 'queued') {
+        label.textContent = 'Requested' + (queuedAt ? ' · ' + queuedAt : '') + '. Waiting for a GitHub runner. ';
+        const link = document.createElement('a');
+        link.href = 'https://github.com/mzarzour/aaltair-ui/actions/workflows/refresh-apiiro.yml';
+        link.textContent = 'Open workflow';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        label.append(link, ' and choose Run workflow to start it manually.');
+      }
       else if (state.status === 'running') label.textContent = 'Fetching the next Apiiro snapshot.';
       else if (state.status === 'failed') label.textContent = state.error || 'Refresh failed. Previous snapshot retained.';
       else label.textContent = '';

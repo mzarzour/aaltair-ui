@@ -4,7 +4,30 @@ const key='altair/github-refresh-state.json';
 async function read(){const o=await env.BUCKET!.get(key);return {state:o?await o.json<any>():{status:'idle'},etag:o?.etag};}
 async function save(state:any,etag?:string){const o=await env.BUCKET!.put(key,JSON.stringify(state),{onlyIf:etag?{etagMatches:etag}:{etagDoesNotMatch:'*'}});if(!o)throw Error('Refresh state changed. Please retry.');}
 export async function queueStatus(){return (await read()).state;}
-export async function requestRefresh(){const {state,etag}=await read();if(state.status==='queued'||state.status==='running'&&Date.now()-Date.parse(state.startedAt)<25*60000)return state;const next={...state,status:'queued',requestedAt:new Date().toISOString(),error:null};await save(next,etag);return next;}
+export async function requestRefresh() {
+ const {state, etag} = await read();
+ const active = state.status === 'running' && Date.now() - Date.parse(state.startedAt) < 25 * 60000;
+ if (state.status === 'queued' || active) return state;
+
+ const next = {...state, status:'queued', requestedAt:new Date().toISOString(), error:null};
+ await save(next, etag);
+ // Save first so an immediately available runner can claim the request.
+ const token = (env as any).GITHUB_ACTIONS_DISPATCH_TOKEN;
+ if (token) {
+  try {
+   const response = await fetch('https://api.github.com/repos/mzarzour/aaltair-ui/actions/workflows/refresh-apiiro.yml/dispatches', {
+    method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(8000),
+    headers: {Authorization:'Bearer '+token, Accept:'application/vnd.github+json',
+     'Content-Type':'application/json', 'User-Agent':'Aaltair-refresh'},
+    body: JSON.stringify({ref:'main'})
+   });
+   if (!response.ok) console.warn('Refresh dispatch returned HTTP', response.status);
+  } catch {
+   console.warn('Refresh dispatch unavailable. Request retained for scheduled pickup.');
+  }
+ }
+ return queueStatus();
+}
 export function runnerAuthorized(request:Request){const expected=(env as any).REFRESH_RUNNER_TOKEN;return !!expected&&request.headers.get('x-aaltair-runner-key')===expected;}
 export async function claimRefresh(){
  const {state,etag}=await read();if(state.status==='running'&&Date.now()-Date.parse(state.startedAt)<25*60000)return {job:null};
