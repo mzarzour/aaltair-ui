@@ -25,8 +25,17 @@ export async function GET() {
    return urls.filter((url:string)=>!token||url.split('/').pop()!.toLowerCase().includes(token.toLowerCase())).some((url:string)=>!snap.repositories.some((r:any)=>r.repositoryUrl===url));
   });
   const notice=pending?'Saved selections are applied. Newly selected applications or repositories without snapshot data will appear after the next refresh.':'Home and Aging reflect your saved application and repository selections.';
-  html=html.replace('<main id="home-page">',`<p class="small" role="status" style="margin:12px 24px" id="selection-status">${notice}</p><main id="home-page">`);
-  if(hosted)html=html.replace(/Updated · [^<]*/, 'Updated · '+new Date(hosted.updatedAt).toLocaleString('en-US',{timeZone:'America/Chicago'})+' Central');
+  html=html.replace('<main id="home-page">',`<p class="small" role="status" id="selection-status">${notice}</p><main id="home-page">`);
+  if (hosted?.updatedAt) {
+   const published = new Date(hosted.updatedAt);
+   const timestamp = published.toLocaleString('en-US', {
+    timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+   });
+   html = html.replaceAll('<time class="last-refresh" hidden></time>',
+    `<time class="last-refresh" datetime="${published.toISOString()}">Last refreshed · ${timestamp}</time>`);
+   html = html.replace(/Updated · [^<]*/, 'Updated · '+timestamp);
+  }
   return new Response(html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}});
  } catch {
   return new Response('Unable to load the saved application scope. Please reload shortly.',{status:503,headers:{'Cache-Control':'no-store'}});

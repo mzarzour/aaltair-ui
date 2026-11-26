@@ -27,6 +27,24 @@ const add=(s,date)=>{const t=Date.parse(date+'T00:00:00Z');if(Number.isFinite(t)
 for(const r of history.items){if(!severities.has(r.severity))continue;for(const s of series){if(s.name==='Fixed'){if(selected.has('All')||selected.has(r.issueType)||selected.size===0)add(s,r.fixedDate);}else if(s.name==='All'||s.name===r.issueType){const discovered=Date.parse(r.discoveredDate+'T00:00:00Z'),closed=Date.parse(r.closedDate+'T00:00:00Z');points.forEach((p,i)=>{if(p.to===end?r.currentOpen:Number.isFinite(discovered)&&discovered<=p.to&&(!Number.isFinite(closed)||closed>p.to))s.values[i]++;});}}}
 summary.textContent=(months>=12?'Monthly':months===1?'Daily':'Weekly')+' period-end open counts · '+new Date(start).toISOString().slice(0,10)+' – '+dateText+(fixed?' · '+(series.find(s=>s.name==='Fixed')?.values.reduce((a,b)=>a+b,0)||0).toLocaleString()+' fixed':'')+' · '+(severities.size===4?'All severities':severities.size?[...severities].sort().map(i=>severityNames[i]).join(' + '):'No severities selected');
 chart.replaceChildren();const max=Math.max(1,...series.flatMap(s=>s.values)),ceiling=Math.ceil(max/5)*5;const x=i=>55+i*880/Math.max(1,points.length-1),y=v=>210-v/ceiling*180;
+// Shade one open series so overlapping filters never imply a stacked total.
+if (points.length > 1) {
+  const open = series.find(s => s.name === 'All') || (selected.size === 1 ? series[0] : null);
+  if (open) {
+    const defs = svgNode('defs');
+    const gradientId = id + '-backlog-gradient';
+    const gradient = svgNode('linearGradient', {id:gradientId, x1:'0%', y1:'0%', x2:'0%', y2:'100%'});
+    for (const [offset, opacity] of [['0%', .26], ['100%', 0]]) {
+      gradient.append(svgNode('stop', {offset, 'stop-color':open.color, 'stop-opacity':opacity}));
+    }
+    defs.append(gradient);
+    const line = open.values.map((v, i) => x(i) + ',' + y(v)).join(' ');
+    chart.append(defs, svgNode('polygon', {
+      class:'open-backlog-fill', points:x(0)+','+y(0)+' '+line+' '+x(points.length-1)+','+y(0),
+      fill:'url(#'+gradientId+')', 'pointer-events':'none', 'aria-hidden':'true'
+    }));
+  }
+}
 for(let i=0;i<=4;i++){const v=ceiling*i/4,yy=y(v);chart.append(svgNode('line',{x1:55,x2:935,y1:yy,y2:yy,class:'grid'}));const t=svgNode('text',{x:45,y:yy+4,'text-anchor':'end'});t.textContent=Math.round(v).toLocaleString();chart.append(t);}
 for(let i=0;i<points.length;i++){if(i===0||i===points.length-1||i%Math.max(1,Math.ceil(points.length/5))===0){const t=svgNode('text',{x:x(i),y:238,'text-anchor':i===0?'start':i===points.length-1?'end':'middle'});t.textContent=new Date(points[i].to).toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric'});chart.append(t);}}
 for(const s of series){chart.append(svgNode('polyline',{points:s.values.map((v,i)=>x(i)+','+y(v)).join(' '),fill:'none',stroke:s.color,'stroke-width':s.name==='Fixed'?3:2,'stroke-dasharray':s.name==='Fixed'?'6 4':'none','stroke-linejoin':'round'}));s.values.forEach((v,i)=>{const c=svgNode('circle',{cx:x(i),cy:y(v),r:4,fill:s.color,tabindex:0});const label=s.name+': '+v+' · '+new Date(points[i].to).toISOString().slice(0,10);c.setAttribute('aria-label',label);const t=svgNode('title');t.textContent=label;c.append(t);chart.append(c);});}
