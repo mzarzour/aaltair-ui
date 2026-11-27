@@ -96,8 +96,8 @@ html[data-theme="light"] #home-page{--home-critical:#b32649;--home-cyan:#08788a;
 #home-page .heading{border-left:3px solid var(--home-cyan);padding-left:20px}
 #home-page .eyebrow{color:var(--home-cyan)}
 #brief-cards .metric{--accent:var(--home-cyan)}
-:is(#brief-cards, #brief-open-risks) .metric{border-top:3px solid var(--accent)}
-#brief-cards .metric{background:var(--panel)}
+#brief-open-risks .metric{border-top:3px solid var(--accent)}
+#brief-cards .metric{border-top:3px solid var(--line);background:var(--panel)}
 #brief-open-risks .metric{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel) 80%)}
 #brief-cards .metric[data-tone="today"]{--accent:var(--home-cyan)}
 #brief-cards .metric[data-tone="week"]{--accent:var(--home-blue)}
@@ -162,8 +162,8 @@ html[data-theme="shell"] #brief-open-risks .metric {
   background: color-mix(in srgb, var(--accent) 7%, var(--shell-deep-surface));
 }
 html[data-theme="shell"] :is(#brief-cards, #brief-open-risks) .metric {
-  border-color: transparent;
-  border-top-color: var(--accent);
+  border-inline-color: transparent;
+  border-bottom-color: transparent;
   box-shadow: none;
 }
 html[data-theme="shell"] #brief-cards .metric-head::before { display: none; }
