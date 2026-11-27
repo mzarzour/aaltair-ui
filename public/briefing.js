@@ -13,6 +13,16 @@ const fresh=rows.filter(r=>within(r,today)),weekly=rows.filter(r=>within(r,monda
 $('brief-snapshot-dates').textContent='Open snapshot · '+d.aging.asOf+' · Resolutions checked '+(d.resolved?centralDate(d.resolved.asOf):'not yet')+' · Central time';
 d.apps.forEach((a,i)=>{const o=el('option','',a.name);o.value=i;$('brief-app').append(o)});
 function open(items,label,button){window.dispatchEvent(new CustomEvent('issue-type-findings',{detail:{rows:items,label,opener:button,scopeLabel:label.startsWith('Resolved')?'Resolved findings':undefined}}))}
+names.forEach((label, severity) => {
+  const items = rows.filter(row => row.severity === severity);
+  const card = el('button', 'metric ' + label.toLowerCase());
+  card.type = 'button';
+  const heading = el('span', 'metric-head');
+  heading.append(el('span', 'dot'), el('span', '', label));
+  card.append(heading, el('span', 'metric-value', items.length.toLocaleString()), el('span', 'metric-bottom', 'Open security risks'));
+  card.onclick = () => open(items, label + ' open security risks', card);
+  $('brief-open-risks').append(card);
+});
 function metricCard(label){const card=el('article','metric');card.dataset.tone=label.startsWith('Critical')?'critical':label.startsWith('High')?'high':label.startsWith('Resolved')?'resolved':label==='New today'?'today':'week';return card;}
 for(const [label,items,description] of [['New today',fresh,'Discovered '+todayText],['New this week',weekly,'Monday through today'],['Critical this week',weekly.filter(r=>r.severity===0),'New critical findings this week'],['High this week',weekly.filter(r=>r.severity===1),'New high findings this week']]){const card=metricCard(label);card.append(el('div','metric-head',label));const b=el('button','metric-value',items.length);b.onclick=()=>open(items,label,b);card.append(b,el('div','metric-bottom',description));$('brief-cards').append(card)}
 for(const [label,items] of [['Resolved yesterday',resolved.filter(r=>within(r,today))],['Resolved this week',resolved.filter(r=>within(r,monday))]]){const card=metricCard(label);card.append(el('div','metric-head',label));const b=el('button','metric-value',items.length);b.onclick=()=>open(items,label,b);card.append(b,el('div','metric-bottom','Confirmed by Apiiro lifecycle'));$('brief-cards').append(card)}
