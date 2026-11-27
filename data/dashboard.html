@@ -82,7 +82,8 @@ html[data-theme="light"] :is(button,input,select,summary,a):focus-visible{outlin
 .age-table th:not(:first-child),.age-table td:not(:first-child){text-align:center;vertical-align:middle}
 .age-table .age-count{display:inline-grid;grid-template-rows:20px 15px;row-gap:5px;justify-items:center;align-content:start;min-width:76px;line-height:20px;text-align:center}
 .age-table .age-count .overdue-note{margin-top:0;line-height:15px;text-align:center;white-space:nowrap}
-</style><style id="issue-type-icon-size">.side-nav a[data-page="types"] .nav-symbol{font-size:27px}</style><style>.brief-breakdowns{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:24px}.brief-breakdowns h3{font-size:15px;margin:0 0 16px}.brief-breakdowns button{display:flex;justify-content:space-between;gap:16px;width:100%;padding:10px 0;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;font:inherit}.brief-pagination{display:flex;align-items:center;justify-content:center;gap:20px;padding:20px}.brief-pagination button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 16px;cursor:pointer}.brief-pagination button:disabled{opacity:.4}.brief-empty{padding:28px;text-align:center;color:var(--muted)}#home-page .controls{flex-wrap:wrap}#home-page .finding-table td:first-child{min-width:260px}#brief-open-risks .critical { --accent: var(--home-critical); }
+</style><style id="issue-type-icon-size">.side-nav a[data-page="types"] .nav-symbol{font-size:27px}</style><style>.brief-breakdowns{display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:24px}.brief-breakdowns h3{font-size:15px;margin:0 0 16px}.brief-breakdowns button{display:flex;justify-content:space-between;gap:16px;width:100%;padding:10px 0;color:var(--ink);background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;font:inherit}.brief-pagination{display:flex;align-items:center;justify-content:center;gap:20px;padding:20px}.brief-pagination button{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 16px;cursor:pointer}.brief-pagination button:disabled{opacity:.4}.brief-empty{padding:28px;text-align:center;color:var(--muted)}#home-page .controls{flex-wrap:wrap}#home-page .finding-table td:first-child{min-width:260px}#brief-open-risks { padding-bottom: clamp(8px, 1vw, 12px); }
+#brief-open-risks .critical { --accent: var(--home-critical); }
 #brief-open-risks .high { --accent: var(--home-amber); }
 #brief-open-risks .medium { --accent: var(--medium); }
 #brief-open-risks .low { --accent: var(--home-blue); }
@@ -95,7 +96,9 @@ html[data-theme="light"] #home-page{--home-critical:#b32649;--home-cyan:#08788a;
 #home-page .heading{border-left:3px solid var(--home-cyan);padding-left:20px}
 #home-page .eyebrow{color:var(--home-cyan)}
 #brief-cards .metric{--accent:var(--home-cyan)}
-:is(#brief-cards, #brief-open-risks) .metric{border-top:3px solid var(--accent);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel) 80%)}
+:is(#brief-cards, #brief-open-risks) .metric{border-top:3px solid var(--accent)}
+#brief-cards .metric{background:var(--panel)}
+#brief-open-risks .metric{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel) 80%)}
 #brief-cards .metric[data-tone="today"]{--accent:var(--home-cyan)}
 #brief-cards .metric[data-tone="week"]{--accent:var(--home-blue)}
 #brief-cards .metric[data-tone="critical"]{--accent:var(--home-critical)}
@@ -155,8 +158,10 @@ html[data-theme="shell"] .mark img.shell-logo { display: block; }
 html[data-theme="shell"] #home-page{--home-critical:#ef4135;--home-cyan:#0080a3;--home-blue:#0080a3;--home-violet:#d6a100;--home-amber:#d6a100;--home-green:#0080a3}
 html[data-theme="shell"] #home-history,
 html[data-theme="shell"] #brief-cards .metric{background:var(--shell-deep-surface)}
-html[data-theme="shell"] :is(#brief-cards, #brief-open-risks) .metric {
+html[data-theme="shell"] #brief-open-risks .metric {
   background: color-mix(in srgb, var(--accent) 7%, var(--shell-deep-surface));
+}
+html[data-theme="shell"] :is(#brief-cards, #brief-open-risks) .metric {
   border-color: transparent;
   border-top-color: var(--accent);
   box-shadow: none;
