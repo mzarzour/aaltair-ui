@@ -10,7 +10,6 @@ const rows=d.aging.items.map(r=>({...r,discovery:Number.isFinite(r.days)?snapsho
 const within=(r,start)=>r.discovery!==null&&r.discovery>=start&&r.discovery<=today;
 const monthStart=Date.parse(todayText.slice(0,7)+'-01T00:00:00Z');
 const fresh=rows.filter(r=>within(r,today)),weekly=rows.filter(r=>within(r,monday)),monthly=rows.filter(r=>within(r,monthStart));
-$('brief-snapshot-dates').textContent='Open snapshot · '+d.aging.asOf+' · Resolutions checked '+(d.resolved?centralDate(d.resolved.asOf):'not yet')+' · Central time';
 d.apps.forEach((a,i)=>{const o=el('option','',a.name);o.value=i;$('brief-app').append(o)});
 function open(items,label,button){window.dispatchEvent(new CustomEvent('issue-type-findings',{detail:{rows:items,label,opener:button,scopeLabel:label.startsWith('Resolved')?'Resolved findings':undefined}}))}
 names.forEach((label, severity) => {

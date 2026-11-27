@@ -26,6 +26,13 @@ export async function GET() {
   });
   const notice=pending?'Saved selections are applied. Newly selected applications or repositories without snapshot data will appear after the next refresh.':'Home and Aging reflect your saved application and repository selections.';
   html=html.replace('<main id="home-page">',`<p class="small" role="status" id="selection-status">${notice}</p><main id="home-page">`);
+  const pulledAt = new Date(hosted?.updatedAt || source.resolved?.asOf || source.history?.asOf || NaN);
+  const pullTime = Number.isFinite(pulledAt.getTime())
+   ? `<time id="home-pull-time" datetime="${pulledAt.toISOString()}">${pulledAt.toLocaleString('en-US', {
+      timeZone: 'Etc/GMT+6', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+     })} CST</time>`
+   : '<span>Last pull time unavailable</span>';
+  html = html.replace('<time id="home-pull-time"></time>', pullTime);
   if (hosted?.updatedAt) {
    const published = new Date(hosted.updatedAt);
    const timestamp = published.toLocaleString('en-US', {

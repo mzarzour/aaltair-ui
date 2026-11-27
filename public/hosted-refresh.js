@@ -4,7 +4,7 @@
   const response = await fetch(statusUrl, {cache: 'no-store'});
   if (!response.ok) return;
   let state = await response.json();
-  const displayedAt = document.querySelector('#brief-asof time[datetime]')?.dateTime || state.completedAt;
+  const displayedAt = document.querySelector('#home-pull-time[datetime]')?.dateTime || state.completedAt;
   const controls = [];
   let timer, submitting = false, revision = 0;
 
@@ -73,7 +73,7 @@
     submitting = false;
     update();
   }
-  for (const host of document.querySelectorAll('#home-page > .heading, #setup-page > .heading')) {
+  for (const host of document.querySelectorAll('#setup-page > .heading')) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'theme-toggle';
