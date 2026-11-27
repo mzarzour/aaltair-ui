@@ -5,3 +5,37 @@
 .history-severity{align-items:center;padding-top:10px;border-top:1px solid var(--line)}.history-severity strong{font-size:13px;color:var(--muted);margin-right:6px}.history-severity button[aria-pressed=true]{box-shadow:inset 0 -2px var(--series-color)}
 
 .history-ranges{flex-wrap:wrap}
+
+.history-plot { position: relative; }
+.history-chart { touch-action: pan-y pinch-zoom; }
+.history-chart:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.history-guide { stroke: var(--muted); stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.history-marker { stroke: var(--panel); stroke-width: 2; }
+.history-tooltip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 3px 12px #0003;
+  font-size: 13px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+.history-tooltip-rows { margin-top: 4px; }
+.history-tooltip-row { display: flex; align-items: baseline; gap: 6px; }
+.history-tooltip-row::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--series-color); flex: none;
+}
+.history-tooltip-row strong { margin-left: auto; padding-left: 10px; }
+@media (min-width: 620px) {
+  .history-tooltip-rows:has(> :nth-child(8)) { columns: 2; column-gap: 16px; }
+  .history-tooltip-row { break-inside: avoid; }
+}
